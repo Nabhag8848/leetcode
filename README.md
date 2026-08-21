@@ -1,8 +1,12 @@
 # LeetCode (Go)
 
-Accepted [LeetCode](https://leetcode.com) solutions in Go, exported with [leetcode-export](https://github.com/NeverMendel/leetcode-export) via Docker.
+My [LeetCode](https://leetcode.com) solutions to problems I have solved in Go.
 
-Problem statements are not stored (LeetCode content is their IP).
+**Profile:** [NabhagMotivaras](https://leetcode.com/u/NabhagMotivaras/)
+
+[![LeetCode Stats](https://leetcard.jacoblin.cool/NabhagMotivaras?ext=heatmap)](https://leetcode.com/u/NabhagMotivaras/)
+
+Accepted submissions are exported with [leetcode-export](https://github.com/NeverMendel/leetcode-export) via Docker. Problem statements are not stored (LeetCode content is their IP).
 
 ## Layout
 
