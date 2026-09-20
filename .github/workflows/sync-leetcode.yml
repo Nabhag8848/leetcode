@@ -77,7 +77,7 @@ jobs:
           git push --force-with-lease origin "HEAD:refs/heads/$branch"
           echo "created=true" >> "$GITHUB_OUTPUT"
 
-      - name: Open or update pull request
+      - name: Open, update, and merge pull request
         if: steps.changes.outputs.created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -96,9 +96,12 @@ jobs:
           if [ -n "$existing_pr" ]; then
             echo "Updated pull request #$existing_pr."
           else
-            gh pr create \
+            pr_url="$(gh pr create \
               --head "$branch" \
               --base "$BASE_BRANCH" \
               --title "Sync accepted LeetCode submissions" \
-              --body "Automated export of new accepted Go submissions from LeetCode."
+              --body "Automated export of new accepted Go submissions from LeetCode.")"
+            existing_pr="${pr_url##*/}"
           fi
+
+          gh pr merge "$existing_pr" --squash --delete-branch

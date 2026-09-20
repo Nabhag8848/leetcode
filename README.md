@@ -58,10 +58,11 @@ The [Sync LeetCode submissions](.github/workflows/sync-leetcode.yml) GitHub
 Actions workflow checks for new accepted Go submissions every 15 minutes. If
 the export changes the repository, the workflow updates an
 `automation/leetcode-sync` branch and opens a pull request against the default
-branch. Repeated runs update the same open pull request. The export is
-downloaded into a temporary staging directory first, so duplicate or partial
-export folders never appear in the repository checkout. It can also be started
-manually from **Actions → Sync LeetCode
+branch. After every export step succeeds, the workflow squash-merges its own
+pull request and deletes the automation branch. The export is downloaded into
+a temporary staging directory first, so duplicate or partial export folders
+never appear in the repository checkout. It can also be started manually from
+**Actions → Sync LeetCode
 submissions → Run workflow**.
 
 To enable it:
@@ -74,8 +75,8 @@ To enable it:
    value into it.
 5. Under **Settings → Actions → General → Workflow permissions**, allow
    **Read and write permissions** and enable **Allow GitHub Actions to create
-   and approve pull requests**. The workflow only creates the pull request; it
-   does not approve or merge it.
+   and approve pull requests**. The workflow creates and merges only its
+   `automation/leetcode-sync` pull request.
 6. Open the workflow in the Actions tab and run it once manually to verify the
    secret.
 
