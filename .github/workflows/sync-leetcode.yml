@@ -39,9 +39,11 @@ jobs:
 
           docker run --rm \
             --user "$(id -u):$(id -g)" \
+            --workdir /usr/app/out \
             -v "$export_dir:/usr/app/out" \
             nevermendel/leetcode-export \
             --cookies "$LEETCODE_COOKIES" \
+            --folder /usr/app/out \
             --only-accepted \
             --language=golang \
             --no-problem-statement \
