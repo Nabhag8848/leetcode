@@ -43,20 +43,42 @@ docker run --rm \
 Then zero-pad folder IDs (`1-two-sum` → `0001-two-sum`):
 
 ```bash
-python3 - <<'PY'
-from pathlib import Path
-
-for path in list(Path(".").iterdir()):
-    if not path.is_dir() or "-" not in path.name:
-        continue
-    prefix, rest = path.name.split("-", 1)
-    if not prefix.isdigit():
-        continue
-    dest = path.with_name(f"{int(prefix):04d}-{rest}")
-    if dest == path:
-        continue
-    if dest.exists():
-        raise SystemExit(f"Cannot rename {path} → {dest}: destination exists")
-    path.rename(dest)
-PY
+python3 scripts/normalize_problem_folders.py
 ```
+
+If both `1-two-sum/` and `0001-two-sum/` exist, the script matches them by the
+numeric problem ID, moves new submission files into the existing padded folder,
+and removes the unpadded folder. Matching by ID also handles a changed problem
+slug. Identical files are safely skipped. If the same filename contains
+different content, the script stops instead of overwriting either copy.
+
+## Automatic sync
+
+The [Sync LeetCode submissions](.github/workflows/sync-leetcode.yml) GitHub
+Actions workflow checks for new accepted Go submissions every 15 minutes. If
+the export changes the repository, the workflow updates an
+`automation/leetcode-sync` branch and opens a pull request against the default
+branch. Repeated runs update the same open pull request. The export is
+downloaded into a temporary staging directory first, so duplicate or partial
+export folders never appear in the repository checkout. It can also be started
+manually from **Actions → Sync LeetCode
+submissions → Run workflow**.
+
+To enable it:
+
+1. Log in to LeetCode and open your browser's developer tools.
+2. In the Network tab, select a request to `leetcode.com` and copy its complete
+   `cookie` request header value.
+3. In this GitHub repository, open **Settings → Secrets and variables → Actions**.
+4. Create a repository secret named `LEETCODE_COOKIES` and paste the cookie
+   value into it.
+5. Under **Settings → Actions → General → Workflow permissions**, allow
+   **Read and write permissions** and enable **Allow GitHub Actions to create
+   and approve pull requests**. The workflow only creates the pull request; it
+   does not approve or merge it.
+6. Open the workflow in the Actions tab and run it once manually to verify the
+   secret.
+
+LeetCode login cookies expire. If the workflow starts failing authentication,
+replace the `LEETCODE_COOKIES` secret with a fresh cookie header. Keep this
+value only in GitHub Actions secrets; never commit it to the repository.
