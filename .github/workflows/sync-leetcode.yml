@@ -21,9 +21,14 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Export accepted Go submissions
         env:
@@ -34,21 +39,16 @@ jobs:
             exit 1
           fi
 
+          python -m pip install --disable-pip-version-check curl_cffi \
+            || echo "curl_cffi install failed; the exporter will use urllib."
+
           export_dir="$(mktemp -d "$RUNNER_TEMP/leetcode-export.XXXXXX")"
           echo "EXPORT_DIR=$export_dir" >> "$GITHUB_ENV"
 
-          docker run --rm \
-            --user "$(id -u):$(id -g)" \
-            --workdir /usr/app/out \
-            -v "$export_dir:/usr/app/out" \
-            nevermendel/leetcode-export \
-            --cookies "$LEETCODE_COOKIES" \
-            --folder /usr/app/out \
-            --only-accepted \
-            --language=golang \
-            --no-problem-statement \
-            --problem-folder-name='${question_id}-${title_slug}' \
-            --submission-filename='${id}.go'
+          # /api/submissions/ is behind a Cloudflare challenge, so export uses GraphQL.
+          python scripts/export_submissions.py \
+            --output "$export_dir" \
+            --existing "$GITHUB_WORKSPACE"
 
       - name: Zero-pad problem IDs
         run: |
@@ -77,7 +77,7 @@ jobs:
           git push --force-with-lease origin "HEAD:refs/heads/$branch"
           echo "created=true" >> "$GITHUB_OUTPUT"
 
-      - name: Open, update, and merge pull request
+      - name: Open or update pull request
         if: steps.changes.outputs.created == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -104,4 +104,5 @@ jobs:
             existing_pr="${pr_url##*/}"
           fi
 
-          gh pr merge "$existing_pr" --squash --delete-branch
+          # Leave the pull request open for review.
+          # gh pr merge "$existing_pr" --squash --delete-branch
