@@ -1,0 +1,163 @@
+func solve(board [][]byte)  {
+    sr := 0
+    sc := 0
+    l_sr := len(board)
+    l_sc := len(board[0])
+    visited := make([][]bool, len(board))
+
+    for i := range board {
+        visited[i] = make([]bool, len(board[i]))
+    }
+
+    for i := range board {
+        for j := range board[i] {
+           if i == sr || j == sc || i == l_sr - 1 || j == l_sc - 1 {
+                if board[i][j] == 'O' && !visited[i][j] {
+                    bfs(board, visited, i, j)     
+                }
+           }
+        }
+    }
+
+    for i := range board {
+        for j := range board[i] {
+            if board[i][j] == 'O' && !visited[i][j] {
+                board[i][j] = 'X'
+            }
+        }
+    }
+
+}
+
+type Cell struct {
+    row int
+    col int
+}
+
+type Deque[T any] struct {
+	data  []T
+	head  int
+	count int
+}
+
+func NewDeque[T any]() *Deque[T] {
+	return &Deque[T]{
+		data: make([]T, 4),
+	}
+}
+
+func (d *Deque[T]) cap() int {
+	return len(d.data)
+}
+
+func (d *Deque[T]) resize(newCap int) {
+	newData := make([]T, newCap)
+	for i := 0; i < d.count; i++ {
+		newData[i] = d.data[(d.head+i)%d.cap()]
+	}
+	d.data = newData
+	d.head = 0
+}
+
+func (d *Deque[T]) PushFront(value T) {
+	if d.count == d.cap() {
+		d.resize(d.cap() * 2)
+	}
+	d.head = (d.head - 1 + d.cap()) % d.cap()
+	d.data[d.head] = value
+	d.count++
+}
+
+func (d *Deque[T]) PushBack(value T) {
+	if d.count == d.cap() {
+		d.resize(d.cap() * 2)
+	}
+	d.data[(d.head+d.count)%d.cap()] = value
+	d.count++
+}
+
+func (d *Deque[T]) PopFront() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	val := d.data[d.head]
+	d.data[d.head] = zero
+	d.head = (d.head + 1) % d.cap()
+	d.count--
+	return val
+}
+
+func (d *Deque[T]) PopBack() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	idx := (d.head + d.count - 1) % d.cap()
+	val := d.data[idx]
+	d.data[idx] = zero
+	d.count--
+	return val
+}
+
+func (d *Deque[T]) Front() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	return d.data[d.head]
+}
+
+func (d *Deque[T]) Back() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	return d.data[(d.head+d.count-1)%d.cap()]
+}
+
+func (d *Deque[T]) Size() int {
+	return d.count
+}
+
+func (d *Deque[T]) Empty() bool {
+	return d.count == 0
+}
+
+func bfs(grid [][]byte, visited[][]bool, row, col int) {
+    rows := len(grid)
+    cols := len(grid[0])
+
+    dq := NewDeque[Cell]()
+    dq.PushBack(Cell{row: row, col: col})
+    visited[row][col] = true
+
+    directions := []Cell{
+        {row: -1, col: 0},
+        {row: 1, col: 0},
+        {row: 0, col: -1},
+        {row: 0, col: 1},  
+    }
+
+    for !dq.Empty() {
+        top := dq.PopFront()
+
+        for _, direction := range directions {
+            nextRow := top.row + direction.row
+            nextCol := top.col + direction.col
+
+            if nextRow < 0 || nextRow >= rows ||
+                nextCol < 0 || nextCol >= cols || visited[nextRow][nextCol] {
+                continue
+            }
+
+            if grid[nextRow][nextCol] == 'O' {
+                visited[nextRow][nextCol] = true
+                dq.PushBack(Cell{row: nextRow, col: nextCol})
+            }
+        }
+    }
+}
+
+
+

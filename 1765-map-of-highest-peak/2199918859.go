@@ -1,0 +1,149 @@
+func highestPeak(mat [][]int) [][]int {
+    dq := NewDeque[Cell]()
+    visited := make([][]bool, len(mat))
+    result := make([][]int, len(mat))
+
+	for i := range mat {
+        visited[i] = make([]bool, len(mat[i]))
+        result[i] = make([]int, len(mat[i]))
+        
+		for j := range mat[i] {
+			if mat[i][j] == 1 {
+                visited[i][j] = true
+				dq.PushBack(Cell{row: i, col: j, dist: 0})
+			} 
+		}
+
+   
+	}
+	bfs(result, mat, visited, dq)
+    return result
+}
+
+func bfs(result [][]int, grid [][]int, visited[][]bool, dq *Deque[Cell]) {
+    rows := len(grid)
+    cols := len(grid[0])
+
+	directions := []Cell{
+		{row: -1, col: 0},
+		{row: 1, col: 0},
+		{row: 0, col: -1},
+		{row: 0, col: 1},
+	}
+
+	for !dq.Empty() {
+		top := dq.PopFront()
+        dist := top.dist
+        result[top.row][top.col] = dist
+
+		for _, direction := range directions {
+			nextRow := top.row + direction.row
+			nextCol := top.col + direction.col
+
+			if nextRow < 0 || nextRow >= rows ||
+				nextCol < 0 || nextCol >= cols ||
+				visited[nextRow][nextCol] {
+				continue
+			}
+
+            visited[nextRow][nextCol] = true
+			dq.PushBack(Cell{row: nextRow, col: nextCol, dist: dist + 1})
+		}
+	}
+}
+
+type Cell struct {
+    row int
+    col int
+    dist int
+}
+
+type Deque[T any] struct {
+	data  []T
+	head  int
+	count int
+}
+
+func NewDeque[T any]() *Deque[T] {
+	return &Deque[T]{
+		data: make([]T, 4),
+	}
+}
+
+func (d *Deque[T]) cap() int {
+	return len(d.data)
+}
+
+func (d *Deque[T]) resize(newCap int) {
+	newData := make([]T, newCap)
+	for i := 0; i < d.count; i++ {
+		newData[i] = d.data[(d.head+i)%d.cap()]
+	}
+	d.data = newData
+	d.head = 0
+}
+
+func (d *Deque[T]) PushFront(value T) {
+	if d.count == d.cap() {
+		d.resize(d.cap() * 2)
+	}
+	d.head = (d.head - 1 + d.cap()) % d.cap()
+	d.data[d.head] = value
+	d.count++
+}
+
+func (d *Deque[T]) PushBack(value T) {
+	if d.count == d.cap() {
+		d.resize(d.cap() * 2)
+	}
+	d.data[(d.head+d.count)%d.cap()] = value
+	d.count++
+}
+
+func (d *Deque[T]) PopFront() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	val := d.data[d.head]
+	d.data[d.head] = zero
+	d.head = (d.head + 1) % d.cap()
+	d.count--
+	return val
+}
+
+func (d *Deque[T]) PopBack() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	idx := (d.head + d.count - 1) % d.cap()
+	val := d.data[idx]
+	d.data[idx] = zero
+	d.count--
+	return val
+}
+
+func (d *Deque[T]) Front() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	return d.data[d.head]
+}
+
+func (d *Deque[T]) Back() T {
+	var zero T
+	if d.Empty() {
+		return zero
+	}
+	return d.data[(d.head+d.count-1)%d.cap()]
+}
+
+func (d *Deque[T]) Size() int {
+	return d.count
+}
+
+func (d *Deque[T]) Empty() bool {
+	return d.count == 0
+}
